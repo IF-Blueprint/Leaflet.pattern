@@ -116,8 +116,32 @@ exports.build = function (compsBase32, buildName) {
 	console.log('Concatenating ' + files.length + ' files...');
 
 	var copy = fs.readFileSync('src/copyright.js', 'utf8'),
-	    intro = '(function (window, document, undefined) {',
-	    outro = '}(window, document));',
+        intro = `(function (factory) {
+                    if (typeof define === 'function' && define.amd) {
+                      // AMD. Register as an anonymous module.
+                      define(['leaflet'], factory);
+                    } else if (typeof module === 'object' && module.exports) {
+                      // Node/CommonJS
+                      module.exports = function (root, L) {
+                        if (L === undefined) {
+                          if (typeof window !== 'undefined') {
+                            L = require('leaflet');
+                          }
+                          else {
+                            L = require('leaflet')(root);
+                          }
+                        }
+                        factory(L);
+                        return L;
+                      };
+                    } else {
+                      // Browser globals
+                      factory(L);
+                    }
+                  }(function (L) {`,
+                
+              
+        outro = `return L;}));`,
 	    newSrc = copy + intro + combineFiles(files) + outro,
 
 	    pathPart = 'dist/leaflet.pattern' + (buildName ? '-' + buildName : ''),
